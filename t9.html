@@ -217,15 +217,18 @@
         $("#output").append($("<span class=\"word\">_</span>"));
       };
 
-      var addKey = function(digit) {
+      var addKey = function(digit, onComplete) {
         if (digit == ",") {
           addComma();
+          onComplete();
         } else if (isNaN(parseInt(digit))) {
           // unused button
+          onComplete();
         } else if (digit == "0") {
           digits = [];
           words.push($(".word:last").text());
           $("#output").append($("<span class=\"word\">_</span>"));
+          onComplete();
         } else if (digit == "1") {
           var last = $(".word:last");
           var prefix = words.slice(-4);
@@ -236,11 +239,17 @@
             words = []; // start new sentence
             digits = []; // start new word
             $("#output").append($("<span class=\"first word\">_</span>"));
+            onComplete(mark);
           });
         } else {
           var insertString = function() {
             t9("get_string", [digits.join("")], function(letters) {
-              $(".word:last").text((letters || digits.join("")));
+              var word = letters || digits.join("");
+
+              if (onComplete) {
+                onComplete(word);
+              }
+              $(".word:last").text(word);
             });
           }
           digits.push(digit);
@@ -253,6 +262,7 @@
                 insertString();
               } else {
                 $(".word:last").text(word);
+                onComplete(word);
               }
             });
           }
@@ -264,16 +274,51 @@
           $("#loading").remove();
         });
 
+        var checkBusy = function() {
+          var busy = $(".key.pressed").size() > 0;
+
+          if (busy) {
+            alert("Sorry, I'm busy. The letter model is very expensive with increasing number of letters." +
+              " You can disable it in favour of the much faster word model.");
+          }
+
+          return busy;
+        }
+
         $(".key").click(function(e) {
-          addKey("" + $(e.target).find(".digit").text());
+          var key = $(e.target);
+
+          if (checkBusy()) {
+            return false;
+          }
+          key.addClass("pressed");
+          addKey("" + key.find(".digit").text(), function() {
+            key.removeClass("pressed");
+          });
           return false;
         });
         $(".digit").click(function(e) {
-          addKey("" + $(e.target).text());
+          var key = $(e.target).closest(".key");
+
+          if (checkBusy()) {
+            return false;
+          }
+          key.addClass("pressed");
+          addKey("" + $(e.target).text(), function() {
+            key.removeClass("pressed");
+          });
           return false;
         });
         $(".letters").click(function(e) {
-          addKey("" + $(e.target).closest(".key").find(".digit").text());
+          var key = $(e.target).closest(".key");
+
+          if (checkBusy()) {
+            return false;
+          }
+          key.addClass("pressed");
+          addKey("" + $(e.target).closest(".key").find(".digit").text(), function() {
+            key.removeClass("pressed");
+          });
           return false;
         });
 
@@ -292,8 +337,9 @@
             e.keyCode = 48;
           }
           if (e.keyCode >= 48 && e.keyCode <= 48 + 9) {
-            $("#n" + (e.keyCode - 48)).removeClass("pressed");
-            addKey(e.keyCode - 48);
+            addKey(e.keyCode - 48, function() {
+              $("#n" + (e.keyCode - 48)).removeClass("pressed");
+            });
           } else if (e.keyCode == 188) {
             $("#nbl").removeClass("pressed");
             addComma();
