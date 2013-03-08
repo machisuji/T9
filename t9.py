@@ -69,7 +69,7 @@ class T9(object):
 
     return self.word_seq_prob(letters, freq = self.letter_frequencies)
 
-  def number_to_words(self, number, words = None):
+  def possible_words(self, number, words = None):
     """Converts a sequence of digits (1-9) into a set of possible words according to T9."""
     if words is None:
       words = self.words
@@ -84,15 +84,7 @@ class T9(object):
     Keyword Arguments:
     prefix  -- previous input (a list of words)
     t9input -- a sequence of digits (1-9, either as a number or string)"""
-    return map(lambda w: (w, self.word_seq_prob(prefix + [w])), self.number_to_words(t9input))
-
-  def next_letter_possibilities(self, prefix, digit):
-    """Finds for a given digit and a prefix the possible resulting strings as well as their likelihood.
-
-    Keyword Arguments:
-    prefix -- previous input (a list of letters)
-    digit  -- a digit (1-9)"""
-    return map(lambda l: (l, self.letter_seq_prob(list(prefix) + [l])), self.DIGITS[int(digit)].replace("\\", ""))
+    return map(lambda w: (w, self.word_seq_prob(prefix + [w])), self.possible_words(t9input))
 
   def next_word(self, prefix, t9input, possibilities_function = None, freq = None):
     """Finds the most likely word resulting from a given sequence of digits.
@@ -120,17 +112,15 @@ class T9(object):
       else:
         return None
 
-  def next_letter(self, prefix, digit):
-    """Finds the most likely letter given a digit.
+  def get_string(self, t9input):
+    print "input: ", t9input
+    ps = self.letter_probabilities(t9input, 1)
+    if len(ps) > 0:
+      return ps[0][0]
+    else:
+      return None
 
-    Keyword Arguments:
-    prefix -- previos input (a list of letters)
-    digit  -- a digit (1-9)"""
-    return self.next_word(list(prefix), digit,
-      possibilities_function = self.next_letter_possibilities,
-      freq = self.letter_frequencies)
-
-  def possible_words(self, digits):
+  def possible_strings(self, digits):
     letters = map(lambda d: self.DIGITS[int(d)].replace("\\", ""), str(digits))
     return map(lambda p: "".join(p), product(*letters))
 
@@ -146,7 +136,7 @@ class T9(object):
     return reduce(lambda a, b: a * b, probs)
 
   def letter_probabilities(self, digits, limit = -1):
-    probs = [(word, self.letter_probability(word)) for word in self.possible_words(digits)]
+    probs = [(word, self.letter_probability(word)) for word in self.possible_strings(digits)]
     probs = sorted(probs, key = lambda tuple: -tuple[1])
 
     return probs[:limit]

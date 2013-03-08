@@ -206,6 +206,7 @@
 
       var digits = [];
       var words = [];
+      var letterMode = false;
 
       var addComma = function() {
         var last = $(".word:last");
@@ -237,18 +238,24 @@
             $("#output").append($("<span class=\"first word\">_</span>"));
           });
         } else {
+          var insertString = function() {
+            t9("get_string", [digits.join("")], function(letters) {
+              $(".word:last").text((letters || digits.join("")));
+            });
+          }
           digits.push(digit);
 
-          t9("next_word", [words.slice(-5), digits.join("")], function(word) {
-            if (word == null) {
-              t9("most_likely_letters", [digits], function(letters) {
-                $(".word:last").text((letters || digits).join(""));
-              });
-            } else {
-              $(".word:last").text(word);
-            }
-            var next = word || digits.join("");
-          });
+          if (letterMode) {
+            insertString();
+          } else {
+            t9("next_word", [words.slice(-5), digits.join("")], function(word) {
+              if (word == null) {
+                insertString();
+              } else {
+                $(".word:last").text(word);
+              }
+            });
+          }
         }
       };
 
@@ -291,6 +298,11 @@
             $("#nbl").removeClass("pressed");
             addComma();
           }
+        });
+
+        $("#letterMode").change(function(e) {
+          letterMode = $(this).prop("checked");
+          console.log("Letter mode active: " + letterMode);
         });
       });
     </script>
