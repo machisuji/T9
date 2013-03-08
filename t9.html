@@ -127,7 +127,10 @@
     <p class="info">
       Below you can enter text using T9. The most likely words are automatically substituted
       for the digits that were pressed.<br/><br/>
-      You can also use the digits on your keyboard to input text.
+      You can also use the digits on your keyboard to input text.<br/><br/>
+      A word-based ngram model is used per default. Said model will only fall back to a letter model
+      if it fails to find a suitable word. You can set the letter model as the default through the
+      checkbox at the bottom.
     </p>
     <div id="content">
       <div id="output">
@@ -234,7 +237,7 @@
           var prefix = words.slice(-4);
 
           prefix.push(last.text());
-          t9("next_word", [prefix, "1"], function(mark) {
+          t9("find_word", [prefix, "1"], function(mark) {
             last.text(last.text() + mark);
             words = []; // start new sentence
             digits = []; // start new word
@@ -243,7 +246,7 @@
           });
         } else {
           var insertString = function() {
-            t9("get_string", [digits.join("")], function(letters) {
+            t9("find_string", [digits.join("")], function(letters) {
               var word = letters || digits.join("");
 
               if (onComplete) {
@@ -257,7 +260,7 @@
           if (letterMode) {
             insertString();
           } else {
-            t9("next_word", [words.slice(-5), digits.join("")], function(word) {
+            t9("find_word", [words.slice(-5), digits.join("")], function(word) {
               if (word == null) {
                 insertString();
               } else {

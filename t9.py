@@ -16,9 +16,13 @@ class T9(object):
   DIGITS = {1: "\\.\\!\\?", 2: "abc", 3: "def", 4: "ghi", 5: "jkl", 6: "mno", 7: "pqrs", 8: "tuv", 9: "wxyz"}
 
   def __init__(self, corpus = brown, n = 3, files = None):
-    """Creates a new word predictor.
+    """Creates a new word predictor. It builds two ngram models for predictions,
+       a word-based ngram model considering word context and a letter-based ngram model.
+       Methods with 'string' in their name work using the letter model while methods
+       with 'word' in them use the word-based model.
+       The term 'string' suggests the resulting words will not exist within the used corpus.
 
-    Warning: This takes quite a bit of time. Also due to the fact that nltk.book.FreqDist
+    Warning: Creating this takes quite a bit of time. Also due to the fact that nltk.book.FreqDist
              seems to load a bunch of texts when they are not even needed.
              The ngram generation itself also takes up a lot of time, though.
 
@@ -33,12 +37,12 @@ class T9(object):
     self.ngrams = []
     self.letter_ngrams = []
 
-    for sentence in self.sentences:
+    for sentence in self.sentences: # build word ngrams
       tokens = [self.START_TOKEN] + sentence + [self.END_TOKEN]
       for n in range(self.ngram_dimension):
         self.ngrams += ngrams(tokens, n + 1)
 
-    for word in self.words:
+    for word in self.words: # build letter ngrams
       tokens = [self.START_TOKEN] + list(word) + [self.END_TOKEN]
       for n in range(self.ngram_dimension):
         self.letter_ngrams += ngrams(tokens, n + 1)
@@ -49,7 +53,7 @@ class T9(object):
     self.letter_frequencies = FreqDist(self.letter_ngrams)
 
   def word_seq_prob(self, words, freq = None):
-    """Calculates the probability of a given sequence of words using this WordPredictor's ngram model."""
+    """Calculates the probability of a given sequence of words using a word-based ngram model."""
     prefix = words[-(self.ngram_dimension - 1):-1]
     seq = words[-self.ngram_dimension:]
     if freq is None:
@@ -63,45 +67,49 @@ class T9(object):
       return 0.0
 
   def letter_seq_prob(self, letters):
-    """Calculates the probability of a given sequence of letters using this WordPredictor's ngram model."""
+    """Calculates the probability of a given sequence of letters using a letter-based ngram model."""
     if isinstance(letters, str):
       letters = list(letters)
 
     return self.word_seq_prob(letters, freq = self.letter_frequencies)
 
-  def possible_words(self, number, words = None):
-    """Converts a sequence of digits (1-9) into a set of possible words according to T9."""
+  def possible_words(self, digits, words = None):
+    """Converts a sequence of digits into a set of possible words according to T9.
+
+    Keyword Arguments:
+    digits -- a string containing a sequence of digits (1-9)
+    words  -- the set of words to base the selection on (default self.words)"""
     if words is None:
       words = self.words
-    letters = map(lambda c: "[" + self.DIGITS[int(c)] + "]", str(number))
+    letters = map(lambda c: "[" + self.DIGITS[int(c)] + "]", digits)
     regex = "^" + "".join(letters) + "$"
 
     return [w for w in words if re.search(regex, w, re.IGNORECASE)]
 
-  def next_possibilities(self, prefix, t9input):
+  def word_possibilities(self, prefix, digits):
     """Finds for a given sequence of digits a list of possible resulting words as well as their likelihood.
 
     Keyword Arguments:
     prefix  -- previous input (a list of words)
-    t9input -- a sequence of digits (1-9, either as a number or string)"""
-    return map(lambda w: (w, self.word_seq_prob(prefix + [w])), self.possible_words(t9input))
+    digits  -- a sequence of digits (1-9, as a string)"""
+    return map(lambda w: (w, self.word_seq_prob(prefix + [w])), self.possible_words(digits))
 
-  def next_word(self, prefix, t9input, possibilities_function = None, freq = None):
+  def find_word(self, prefix, digits, possibilities_function = None, freq = None):
     """Finds the most likely word resulting from a given sequence of digits.
     
     Keyword Arguments:
     prefix  -- previous input (a list of words)
-    t9input -- a sequence of digits (1-9, either as a number or string)"""
+    digits  -- a sequence of digits (1-9, as a string)"""
     if possibilities_function is None:
-      possibilities_function = self.next_possibilities
+      possibilities_function = self.word_possibilities
     if freq is None:
       freq = self.frequencies
-    possibilities = possibilities_function(prefix, t9input)
+    possibilities = possibilities_function(prefix, digits)
 
     if sum([1 for p in possibilities if p[1] != 0.0]) > 0: # any possible at all?
       return max(possibilities, key = lambda tuple: tuple[1])[0]
     elif len(prefix) > 0: # try to find match with shorter prefix before giving up entirely
-      return self.next_word(prefix[:-1], t9input, possibilities_function)
+      return self.find_word(prefix[:-1], digits, possibilities_function)
     else:
       # Possibility functions use a start token as an implicit prefix.
       # If nothing could be found like that, just return the word that occurs
@@ -112,31 +120,38 @@ class T9(object):
       else:
         return None
 
-  def get_string(self, t9input):
-    print "input: ", t9input
-    ps = self.letter_probabilities(t9input, 1)
+  def find_string(self, digits):
+    """Finds the most likely string resulting from a given sequence of digits (1-9, as a string)."""
+    ps = self.string_possibilities(digits, 1)
     if len(ps) > 0:
       return ps[0][0]
     else:
       return None
 
   def possible_strings(self, digits):
-    letters = map(lambda d: self.DIGITS[int(d)].replace("\\", ""), str(digits))
+    """Generates all possible strings for a given sequence of digits (1-9, as a string).
+
+    Note: This can be very expensive for longer sequences."""
+    letters = map(lambda d: self.DIGITS[int(d)].replace("\\", ""), digits)
     return map(lambda p: "".join(p), product(*letters))
 
-  def letter_probability(self, word, n = None):
-    from math import tanh
-
+  def string_probability(self, string, n = None):
+    """Calculates the probability of a given string based on a letter model."""
     if n is None:
       n = self.ngram_dimension
 
-    grams = ngrams([self.START_TOKEN] + list(word) + [self.END_TOKEN], n)
+    grams = ngrams([self.START_TOKEN] + list(string) + [self.END_TOKEN], n)
     probs = map(lambda ls: self.letter_seq_prob(list(ls)), grams)
 
     return reduce(lambda a, b: a * b, probs)
 
-  def letter_probabilities(self, digits, limit = -1):
-    probs = [(word, self.letter_probability(word)) for word in self.possible_strings(digits)]
+  def string_possibilities(self, digits, limit = -1):
+    """Finds for a given sequence of digits a list of possible resulting strings as well as their likelihood.
+
+    Keyword Arguments:
+    digits -- a sequence of digits (1-9, as a string)
+    limit  -- maximum number of possibilities to return (default unlimited)"""
+    probs = [(word, self.string_probability(word)) for word in self.possible_strings(digits)]
     probs = sorted(probs, key = lambda tuple: -tuple[1])
 
     return probs[:limit]
