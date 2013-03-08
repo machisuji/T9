@@ -1,0 +1,298 @@
+<html>
+  <head>
+    <title>T9 Test</title>
+    <style type="text/css">
+      body {
+        background-color: #FFBC73;
+      }
+
+      h1 {
+        margin-top: 15px;
+        margin-left: 18px;
+        color: #024C68;
+      }
+
+      .info {
+        margin-left: 18px;
+        color: #0776A0;
+        width: 28em;
+      }
+
+      #loading {
+        position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px;
+        background-color: #FFAAEE;
+        opacity: 0.5;
+        border: 1px solid black;
+
+        text-align: center;
+      }
+
+      #loading .message {
+        padding: 25px;
+        padding-top: 125px;
+        font-size: 72px;
+        font-weight: bold;
+      }
+
+      #content {
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 25px;
+
+        padding: 15px;
+      }
+
+      #output {
+        margin-bottom: 15px;
+        margin-left: 5px;
+        border: 2px inset #A65600;
+        background-color: white;
+        border-radius: 5px;
+        padding: 3px;
+        width: 15em; min-height: 6em;
+        overflow: auto;
+      }
+
+      #numpad {
+      }
+      .row {
+        overflow: auto;
+        height: auto;
+      }
+      .options.row {
+        margin-top: 15px;
+        border-top: 1px outset #A65600;
+        padding: 5px;
+        width: 15.5em;
+        color: #0776A0;
+      }
+      .key {
+        float: left;
+        overflow: auto;
+        width: 4em;
+        border: 1px solid black;
+        padding: 5px;
+        margin: 5px;
+
+        border-radius: 5px;
+        background-color: #BF7A30;
+        box-shadow: 0px 0px 5px #A65600;
+
+        cursor: hand;
+      }
+      .digit {
+        clear: both; float: left;
+        font-size: large;
+        font-weight: bold;
+      }
+      .letters {
+        float: right;
+        color: #024C68;
+      }
+
+      .key:hover, .key.pressed {
+        background-color: #A65600;
+        box-shadow: none;
+      }
+
+      .word {
+        float: left;
+        margin-left: 0.5em;
+      }
+
+      .first.word {
+        text-transform: capitalize;
+      }
+
+      .key, .digit, .letters {
+         -moz-user-select: -moz-none;
+         -khtml-user-select: none;
+         -webkit-user-select: none;
+
+         /*
+           Introduced in IE 10.
+           See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+         */
+         -ms-user-select: none;
+         user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div class="message">Loading ...</div>
+      <p>This can take a minute.</p>
+    </div>
+    <h1>T9 Input</h1>
+    <p class="info">
+      Below you can enter text using T9. The most likely words are automatically substituted
+      for the digits that were pressed.<br/><br/>
+      You can also use the digits on your keyboard to input text.
+    </p>
+    <div id="content">
+      <div id="output">
+        <span class="first word">_</span>
+      </div>
+      <div id="numpad">
+        <div class="row">
+        <div id="n1" class="key">
+          <div class="digit" unselectable="on">1</div>
+          <div class="letters" unselectable="on">.!?</div>
+        </div>
+        <div id="n2" class="key">
+          <div class="digit" unselectable="on">2</div>
+          <div class="letters" unselectable="on">ABC</div>
+        </div>
+        <div id="n3" class="key">
+          <div class="digit" unselectable="on">3</div>
+          <div class="letters" unselectable="on">DEF</div>
+        </div>
+        </div>
+
+        <div class="row">
+        <div id="n4" class="key">
+          <div class="digit" unselectable="on">4</div>
+          <div class="letters" unselectable="on">GHI</div>
+        </div>
+        <div id="n5" class="key">
+          <div class="digit" unselectable="on">5</div>
+          <div class="letters" unselectable="on">JKL</div>
+        </div>
+        <div id="n6" class="key">
+          <div class="digit" unselectable="on">6</div>
+          <div class="letters" unselectable="on">MNO</div>
+        </div>
+        </div>
+
+        <div class="row">
+        <div id="n7" class="key">
+          <div class="digit" unselectable="on">7</div>
+          <div class="letters" unselectable="on">PQRS</div>
+        </div>
+        <div id="n8" class="key">
+          <div class="digit" unselectable="on">8</div>
+          <div class="letters" unselectable="on">TUV</div>
+        </div>
+        <div id="n9" class="key">
+          <div class="digit" unselectable="on">9</div>
+          <div class="letters" unselectable="on">WXYZ</div>
+        </div>
+        </div>
+        <div class="row">
+        <div id="nbl" class="key">
+          <div class="digit" unselectable="on">,</div>
+          <div class="letters" unselectable="on">&nbsp;</div>
+        </div>
+        <div id="n0" class="key" title="space">
+          <div class="digit" unselectable="on">0</div>
+          <div class="letters" unselectable="on">_</div>
+        </div>
+        <div id="nbr" class="key">
+          <div class="digit" unselectable="on">&nbsp;</div>
+          <div class="letters" unselectable="on">&nbsp;</div>
+        </div>
+        </div>
+        <div class="options row">
+          <input type="checkbox" name="letter_mode" id="letterMode" />
+          <label for="letterMode" title="Use letter model instead of word model.">Use Letter Model</label>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+    <script type="text/javascript">
+      var t9 = function t9(methodName, argList, success) {
+        jQuery.post("/t9/" + methodName, JSON.stringify(argList), success);
+      }
+
+      var digits = [];
+      var words = [];
+
+      var addComma = function() {
+        var last = $(".word:last");
+        digits = []; // start new word
+        words.push(last.text());
+        last.text(last.text() + ",");
+        words.push(",");
+        $("#output").append($("<span class=\"word\">_</span>"));
+      };
+
+      var addKey = function(digit) {
+        if (digit == ",") {
+          addComma();
+        } else if (isNaN(parseInt(digit))) {
+          // unused button
+        } else if (digit == "0") {
+          digits = [];
+          words.push($(".word:last").text());
+          $("#output").append($("<span class=\"word\">_</span>"));
+        } else if (digit == "1") {
+          var last = $(".word:last");
+          var prefix = words.slice(-4);
+
+          prefix.push(last.text());
+          t9("next_word", [prefix, "1"], function(mark) {
+            last.text(last.text() + mark);
+            words = []; // start new sentence
+            digits = []; // start new word
+            $("#output").append($("<span class=\"first word\">_</span>"));
+          });
+        } else {
+          digits.push(digit);
+
+          t9("next_word", [words.slice(-5), digits.join("")], function(word) {
+            if (word == null) {
+              t9("most_likely_letters", [digits], function(letters) {
+                $(".word:last").text((letters || digits).join(""));
+              });
+            } else {
+              $(".word:last").text(word);
+            }
+            var next = word || digits.join("");
+          });
+        }
+      };
+
+      $(document).ready(function() {
+        jQuery.post("/init", "go!", function(data) {
+          $("#loading").remove();
+        });
+
+        $(".key").click(function(e) {
+          addKey("" + $(e.target).find(".digit").text());
+          return false;
+        });
+        $(".digit").click(function(e) {
+          addKey("" + $(e.target).text());
+          return false;
+        });
+        $(".letters").click(function(e) {
+          addKey("" + $(e.target).closest(".key").find(".digit").text());
+          return false;
+        });
+
+        $(document).keydown(function(e) {
+          if (e.keyCode == 32) {
+            e.keyCode = 48;
+          }
+          if (e.keyCode >= 48 && e.keyCode <= 48 + 9) {
+            $("#n" + (e.keyCode - 48)).addClass("pressed");
+          } else if (e.keyCode == 188) {
+            $("#nbl").addClass("pressed");
+          }
+        });
+        $(document).keyup(function(e) {
+          if (e.keyCode == 32) {
+            e.keyCode = 48;
+          }
+          if (e.keyCode >= 48 && e.keyCode <= 48 + 9) {
+            $("#n" + (e.keyCode - 48)).removeClass("pressed");
+            addKey(e.keyCode - 48);
+          } else if (e.keyCode == 188) {
+            $("#nbl").removeClass("pressed");
+            addComma();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
