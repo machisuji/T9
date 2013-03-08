@@ -20,7 +20,7 @@ class T9(object):
        a word-based ngram model considering word context and a letter-based ngram model.
        Methods with 'string' in their name work using the letter model while methods
        with 'word' in them use the word-based model.
-       The term 'string' suggests the resulting words will not exist within the used corpus.
+       The term 'string' suggests the resulting words may not exist within the used corpus.
 
     Warning: Creating this takes quite a bit of time. Also due to the fact that nltk.book.FreqDist
              seems to load a bunch of texts when they are not even needed.
