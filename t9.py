@@ -24,7 +24,7 @@ class T9(object):
 
     Warning: Creating this takes quite a bit of time. Also due to the fact that nltk.book.FreqDist
              seems to load a bunch of texts when they are not even needed.
-             The ngram generation itself also takes up a lot of time, though.
+             The ngram generation itself takes up a lot of time too, though.
 
     Keyword Arguments:
     corpus -- text corpus to be used (default Brown University corpus)
