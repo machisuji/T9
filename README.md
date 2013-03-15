@@ -1,7 +1,7 @@
 # T9 in Python
 
 Just a little toy T9 implementation in Python.
-Required nltk.
+Requires nltk.
 
 ## How to run
 
