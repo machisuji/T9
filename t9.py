@@ -218,5 +218,40 @@ def open_web_gui():
   print "Serving T9 on", sa[0], "port", sa[1], "..."
   httpd.serve_forever()
 
+def run_benchmark():
+  import nltk
+  import re
+
+  words = filter(lambda w: re.search("[a-z]+", w, re.IGNORECASE), nltk.corpus.abc.words())
+  words = map(lambda w: w.lower(), words)
+  t9 = T9()
+  right = 0
+  wrong = 0
+
+  def letter_to_digit(letter):
+    dl = filter(lambda t: letter in list(t[1]), T9.DIGITS.items())
+    if len(dl) > 0:
+      return dl[0][0]
+    else:
+      return 1
+
+  print "%20s | %20s" % ("Word", "Guess")
+  print "-------------------------------------------"
+  for word in words[:100]:
+    digits = map(letter_to_digit, word)
+    guess = t9.find_string(digits)
+    if guess == word:
+      right += 1
+    else:
+      wrong += 1
+
+    print "%20s | %20s" % (word, guess)
+
+  print ""
+  print "Out of ", (right + wrong), " words ", round(right * 1.0 / (right + wrong) * 100), " percent have been guessed right."
+
 if __name__ == '__main__':
-  open_web_gui()
+  if sys.argv[1:] and sys.argv[1] == "--benchmark":
+    run_benchmark()
+  else:
+    open_web_gui()
