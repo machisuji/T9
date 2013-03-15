@@ -28,7 +28,7 @@ class T9(object):
 
     Keyword Arguments:
     corpus -- text corpus to be used (default Brown University corpus)
-    n      -- n-gram dimension (default 2)
+    n      -- n-gram dimension (default 3)
     files  -- corpus files to restrict words and sentences to (default None)"""
     self.corpus = corpus
     self.words = set(corpus.words(files))
